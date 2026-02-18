@@ -49,7 +49,7 @@ car-parking-management/
 
 Clone the repository
 
-git clone https://github.com/your-username/car-parking-management-system.git
+git clone 
 
 
 Move project to server directory
@@ -119,3 +119,4 @@ This project is for educational purposes only.
 
 Developed by [ Vraj ]
 Feel free to fork, star ⭐, and contribute!
+

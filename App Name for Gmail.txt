@@ -1,0 +1,18 @@
+App Name :- Park Heaven
+App Password :- scrm cafj uwif mqzb
+
+Gmail: gyanibaba534@gmail.com
+Password :- gyanibaba@123
+
+
+
+improve
+
+1) add prepare validation both user and admin side --- Done
+2) add paymate method when user book slote  --- Done
+3) add timinig when booking creted  --- 
+4) Also Add Location With Toomany Slots And Also Show A Avialble slots
+
+
+
+in upper code when user click on one location then in bottom they show availbel slot in particular location 

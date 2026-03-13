@@ -75,6 +75,28 @@ if (isset($_POST['submit'])) {
     <link rel="stylesheet" href="./Styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        .img {
+            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('./Images/Parking.jpg');
+            background-size: cover;
+            background-position: center;
+            width: 100%;
+            height: 100vh;
+            background-attachment: fixed;
+        }
+        .login { 
+            max-width: 450px; 
+            padding: 40px; 
+            margin: 0;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 33px;
+            box-shadow: 0px 25px 50px rgba(0, 0, 0, 0.3);
+        }
         .form-group {
             position: relative;
         }
@@ -131,6 +153,17 @@ if (isset($_POST['submit'])) {
                 <h2 class="text-center text-capitalize text-white">Registration</h2>
                 <hr class="w-50 mx-auto pb-2 border-dark">
 
+                <div class="d-flex justify-content-center mb-3 gap-4 text-white">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="role" id="roleUser" value="user" checked>
+                        <label class="form-check-label" for="roleUser">User</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="role" id="roleVendor" value="vendor">
+                        <label class="form-check-label" for="roleVendor">Vendor</label>
+                    </div>
+                </div>
+
                 <div class="form-group <?php echo $nameError ? 'has-error invalid' : ''; ?>">
                     <input type="text" class="form-control" name="u_name" id="u_name" 
                            placeholder="User Name" value="<?php echo isset($u_name) ? htmlspecialchars($u_name) : ''; ?>">
@@ -163,7 +196,14 @@ if (isset($_POST['submit'])) {
                 </div>
 
                 <div class="form-group <?php echo $pwdError ? 'has-error invalid' : ''; ?>">
-                    <input type="password" class="form-control" name="pwd" id="pwd" placeholder="Password">
+                    <div class="input-group">
+                        <input type="password" class="form-control" name="pwd" id="pwd" placeholder="Password" style="border-right: none;">
+                        <div class="input-group-append">
+                            <span class="input-group-text bg-white border-left-0" style="cursor: pointer;" onclick="togglePassword('pwd', this)">
+                                <i class="fas fa-eye"></i>
+                            </span>
+                        </div>
+                    </div>
                     <div class="error-message <?php echo $pwdError ? 'show' : ''; ?>" id="pwd-error">
                         <?php if ($pwdError): ?>
                             <i class="fas fa-info-circle"></i><?php echo $pwdError; ?>
@@ -172,7 +212,14 @@ if (isset($_POST['submit'])) {
                 </div>
 
                 <div class="form-group <?php echo $rPwdError ? 'has-error invalid' : ''; ?>">
-                    <input type="password" class="form-control" name="r_pwd" id="r_pwd" placeholder="Repeat Password">
+                    <div class="input-group">
+                        <input type="password" class="form-control" name="r_pwd" id="r_pwd" placeholder="Repeat Password" style="border-right: none;">
+                        <div class="input-group-append">
+                            <span class="input-group-text bg-white border-left-0" style="cursor: pointer;" onclick="togglePassword('r_pwd', this)">
+                                <i class="fas fa-eye"></i>
+                            </span>
+                        </div>
+                    </div>
                     <div class="error-message <?php echo $rPwdError ? 'show' : ''; ?>" id="r_pwd-error">
                         <?php if ($rPwdError): ?>
                             <i class="fas fa-info-circle"></i><?php echo $rPwdError; ?>
@@ -185,13 +232,36 @@ if (isset($_POST['submit'])) {
                 </div>
             </form>
 
-            <div class="text-center">
+            <div class="text-center" id="reg-footer">
                 <p class="reg text-white">Already Registered? <a href="Index.php" class="register-link">Login Here</a></p>
             </div>
         </div>
     </div>
 
     <script>
+        // Redirect to Vendor registration if selected
+        document.getElementsByName('role').forEach(r => {
+            r.addEventListener('change', function() {
+                if(this.value === 'vendor') {
+                    window.location.href = 'VendorRegistration.php';
+                }
+            });
+        });
+
+        function togglePassword(inputId, element) {
+            const input = document.getElementById(inputId);
+            const icon = element.querySelector('i');
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = "password";
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
         function displayError(inputId, message) {
             const formGroup = document.getElementById(inputId).parentElement;
             const errorElement = document.getElementById(`${inputId}-error`);

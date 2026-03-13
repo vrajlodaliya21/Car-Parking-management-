@@ -42,7 +42,7 @@ if (!isset($_SESSION['user'])) {
         }
 
         .bg-image {
-            background-image: url('./Images/bg3.jpg');
+            background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('./Images/Parking.jpg');
             background-size: cover;
             background-position: center;
             width: 100%;
@@ -54,20 +54,33 @@ if (!isset($_SESSION['user'])) {
             display: flex;
             justify-content: flex-end;
             align-items: center;
-            padding-top: 300px;
-            padding-right: 150px;
-            color: Black;
+            padding-top: 250px;
+            padding-right: 100px;
+            color: white;
             text-align: right;
         }
 
+        .home-text {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            max-width: 600px;
+        }
+
         .home-text div {
-            font-size: 35px;
+            font-size: 38px;
+            line-height: 1.3;
+            font-weight: 700;
         }
 
         .home-text div b #span {
-            color: #0385a6;
-            font-family: 'MV Boli', sans-serif;
-            font-size: 37px;
+            color: #00d2ff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 42px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .btn1 {
@@ -129,7 +142,7 @@ if (!isset($_SESSION['user'])) {
                         <div class='home-text'>
                             <div class='text-capitalize'>
                                 <b><span id='span'>Park Your Worries, </span><br /> not just your car. <br />
-                                    <span id='span'>Finding The Perfect <br /> spot</span> made easy </b>
+                                    Finding The Perfect <br /> spot made easy </b>
                             </div>
                             <a href='UserBookSlot.php'>
                                 <button class='btn btn1 px-3 mt-3'><b>Book Now..</b></button>
@@ -140,15 +153,7 @@ if (!isset($_SESSION['user'])) {
             </div>
         </section>
 
-        <section class="row">
-            <h1 class='col-12 text-center text-capitalize py-5'>
-                <b>
-                    <div class="heading-1"> A <span> Smart Parking </span> Management System </div>
-                </b>
-                <p class="text-capitalize special-text mt-3">Our parking management system is an integrated smart
-                    parking <br> system that automates end-to-end parking processes.</p>
-            </h1>
-        </section>
+
 
         <section>
             <div class='container col-11'>
@@ -169,81 +174,7 @@ if (!isset($_SESSION['user'])) {
         </section>
 
 
-        <section class='bg-content pb-5'>
-            <div class='container'>
-                <h1 class='text-center text-capitalize pt-5'>
-                    <b><span id='span'> Products </span> Of Our Parking </b>
-                </h1>
-                <hr class='w-25 mx-auto pb-5 border-black border-dark' />
-            </div>
-            <div class='container col-11 text-center'>
-                <div class='row mb-2'>
-                    <div class='col-lg-4 col-md-4 col-12 mt-3'>
-                        <div class='card'>
-                            <img src='./Images/AI.jpg' class='card-img-top' alt='Card Image' height='223px'>
-                            <div class='card-body'>
-                                <h5 class='card-title mb-4 text-center h4'>Vision AI</h5>
-                                <hr class='w-25 mx-auto border-black border-dark' />
-                                <p class='card-text '>Vision-based technology with CCTV camera - monitors & counts people inflow outflow.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class='col-lg-4 col-md-4 col-12 mt-3'>
-                        <div class='card'>
-                            <img src='./Images/FR.jpg' class='card-img-top' alt='Card Image' height='223px'>
-                            <div class='card-body'>
-                                <h5 class='card-title mb-4 text-center h4'>Facial Recognition System</h5>
-                                <hr class='w-25 mx-auto border-black border-dark' />
-                                <p class='card-text'>An attendance system using face ID with mask & temperature detection.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class='col-lg-4 col-md-4 col-12 mt-3'>
-                        <div class='card'>
-                            <img src='./Images/VMS.jpg' class='card-img-top' alt='Card Image' height='223px'>
-                            <div class='card-body'>
-                                <h5 class='card-title mb-4 text-center h4'>Visitor Management System</h5>
-                                <hr class='w-25 mx-auto border-black border-dark' />
-                                <p class='card-text'>A touchless visitor management software to manage visitors across locations.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
-                <div class='row mb-2'>
-                    <div class='col-lg-4 col-md-4 col-12 mt-3'>
-                        <div class='card'>
-                            <img src='./Images/Corp-Parking.jpg' class='card-img-top' alt='Card Image' height='223px'>
-                            <div class='card-body'>
-                                <h5 class='card-title mb-4 text-center h4'>Parking Management System</h5>
-                                <hr class='w-25 mx-auto border-black border-dark' />
-                                <p class='card-text '>A smart parking system that manages multi-tenant, multi-level parking.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class='col-lg-4 col-md-4 col-12 mt-3'>
-                        <div class='card'>
-                            <img src='./Images/Guard.jpg' class='card-img-top' alt='Card Image' height='223px'>
-                            <div class='card-body'>
-                                <h5 class='card-title mb-4 text-center h4'>Guard Tour System</h5>
-                                <hr class='w-25 mx-auto border-black border-dark' />
-                                <p class='card-text'>A security guard tracking system that assigns & monitors duties, with real-time updates</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class='col-lg-4 col-md-4 col-12 mt-3'>
-                        <div class='card'>
-                            <img src='./Images/gps.jpg' class='card-img-top' alt='Card Image' height='223px'>
-                            <div class='card-body'>
-                                <h5 class='card-title mb-4 text-center h4'>24 x 7 Monitoring System</h5>
-                                <hr class='w-25 mx-auto border-black border-dark' />
-                                <p class='card-text'>24 x 7 monitoring system to monitor the parking area and the vehicles.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
 
 
         <section>

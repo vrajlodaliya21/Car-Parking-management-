@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 session_start(); require("fpdf.php");
 use PHPMailer\PHPMailer\{PHPMailer, Exception};
 require "PHPMailer/src/Exception.php"; require "PHPMailer/src/PHPMailer.php"; require "PHPMailer/src/SMTP.php";
@@ -12,20 +12,72 @@ function generateReceiptContent($bid, $conn) {
     $stmt->bind_param("i", $bid); $stmt->execute(); $b = $stmt->get_result()->fetch_assoc();
     if (!$b) return null;
     $pdf = new FPDF(); $pdf->AddPage();
-    $pdf->SetFont("Arial","B",18); $pdf->SetTextColor(37,99,235); $pdf->Cell(190,10,"Park Heaven",0,1,"C");
+    
+    // Header
+    $pdf->SetFont("Arial","B",20); $pdf->SetTextColor(37,99,235); $pdf->Cell(190,10,"PARK HEAVEN",0,1,"C");
     $pdf->SetFont("Arial","",10); $pdf->SetTextColor(100,116,139); $pdf->Cell(190,5,"Golden Empire, Surat, Gujarat",0,1,"C");
-    $pdf->Ln(10); $pdf->SetFont("Arial","B",14); $pdf->SetTextColor(30,41,59); $pdf->Cell(190,10,"TAX INVOICE","B",1,"L"); $pdf->Ln(5);
-    $pdf->SetFont("Arial","B",10); $pdf->Cell(40,8,"Booking ID:",0,0); $pdf->SetFont("Arial","",10); $pdf->Cell(55,8,$b["id"],0,1);
-    $pdf->Cell(40,8,"Customer:",0,0); $pdf->Cell(55,8,$b["user_name"],0,1);
-    $pdf->Cell(40,8,"Vehicle:",0,0); $pdf->Cell(55,8,$b["vehicle_no"],0,1); $pdf->Ln(10);
+    $pdf->Cell(190,5,"Contact: +91 82009 54589 | Email: parkheaven777@gmail.com",0,1,"C");
+    $pdf->Ln(5);
+    $pdf->Line(10, 32, 200, 32);
+    $pdf->Ln(10);
+
+    // Invoice Title
+    $pdf->SetFont("Arial","B",14); $pdf->SetTextColor(30,41,59); $pdf->Cell(190,10,"TAX INVOICE / RECEIPT",0,1,"L");
+    $pdf->Ln(2);
+
+    // Details Grid
+    $pdf->SetFont("Arial","B",10); $pdf->Cell(40,8,"Booking ID:",0,0); 
+    $pdf->SetFont("Arial","",10); $pdf->Cell(55,8,$b["id"],0,0);
+    $pdf->SetFont("Arial","B",10); $pdf->Cell(40,8,"Payment ID:",0,0); 
+    $pdf->SetFont("Arial","",10); $pdf->Cell(55,8,$b["payment_id"],0,1);
+
+    $pdf->SetFont("Arial","B",10); $pdf->Cell(40,8,"Customer Name:",0,0); 
+    $pdf->SetFont("Arial","",10); $pdf->Cell(55,8,$b["user_name"],0,0);
+    $pdf->SetFont("Arial","B",10); $pdf->Cell(40,8,"Vehicle No:",0,0); 
+    $pdf->SetFont("Arial","",10); $pdf->Cell(55,8,$b["vehicle_no"],0,1);
+
+    $pdf->SetFont("Arial","B",10); $pdf->Cell(40,8,"Location:",0,0); 
+    $pdf->SetFont("Arial","",10); $pdf->Cell(55,8,$b["location"],0,0);
+    $pdf->SetFont("Arial","B",10); $pdf->Cell(40,8,"Slot Number:",0,0); 
+    $pdf->SetFont("Arial","",10); $pdf->Cell(55,8,"#".$b["seat_number"],0,1);
+
+    $pdf->SetFont("Arial","B",10); $pdf->Cell(40,8,"Start Time:",0,0); 
+    $pdf->SetFont("Arial","",10); $pdf->Cell(55,8,date("d-m-Y h:i A", strtotime($b["booking_time"])),0,0);
+    $pdf->SetFont("Arial","B",10); $pdf->Cell(40,8,"End Time:",0,0); 
+    $pdf->SetFont("Arial","",10); $pdf->Cell(55,8,date("d-m-Y h:i A", strtotime($b["end_time"])),0,1);
+
+    $pdf->Ln(10);
+
+    // Table Header
     $pdf->SetFillColor(241,245,249); $pdf->SetFont("Arial","B",10);
-    $pdf->Cell(100,10,"Description",1,0,"L",true); $pdf->Cell(45,10,"Schedule",1,0,"C",true); $pdf->Cell(45,10,"Amount (INR)",1,1,"R",true);
-    $total = $b["amount_paid"]; $base = $total/1.18; $gst = $base*0.09;
-    $pdf->SetFont("Arial","",10); $pdf->Cell(100,10,"Parking Slot Reservation","LR",0,"L");
-    $pdf->Cell(45,10,date("d/m H:i",strtotime($b["booking_time"])),"LR",0,"C"); $pdf->Cell(45,10,number_format($base,2),"LR",1,"R");
-    $pdf->Cell(145,8,"CGST (9%)","LR",0,"R"); $pdf->Cell(45,8,number_format($gst,2),"LR",1,"R");
-    $pdf->Cell(145,8,"SGST (9%)","LR",0,"R"); $pdf->Cell(45,8,number_format($gst,2),"LR",1,"R");
-    $pdf->SetFont("Arial","B",11); $pdf->SetFillColor(239,246,255); $pdf->Cell(145,10,"GRAND TOTAL",1,0,"R",true); $pdf->Cell(45,10,"Rs. ".number_format($total,2),1,1,"R",true);
+    $pdf->Cell(100,10,"Description",1,0,"L",true); 
+    $pdf->Cell(45,10,"Date",1,0,"C",true); 
+    $pdf->Cell(45,10,"Amount (INR)",1,1,"R",true);
+
+    // Amount Calculations
+    $total = $b["amount_paid"]; 
+    $base = $total / 1.18; 
+    $gst_each = ($total - $base) / 2;
+
+    $pdf->SetFont("Arial","",10);
+    $pdf->Cell(100,10,"Parking Slot Reservation Fee",1,0,"L");
+    $pdf->Cell(45,10,date("d-m-Y",strtotime($b["booking_time"])),1,0,"C");
+    $pdf->Cell(45,10,number_format($base, 2),1,1,"R");
+
+    // Tax Rows
+    $pdf->Cell(145,8,"CGST (9%)",1,0,"R"); $pdf->Cell(45,8,number_format($gst_each, 2),1,1,"R");
+    $pdf->Cell(145,8,"SGST (9%)",1,0,"R"); $pdf->Cell(45,8,number_format($gst_each, 2),1,1,"R");
+
+    // Total Row
+    $pdf->SetFont("Arial","B",11); $pdf->SetFillColor(239,246,255);
+    $pdf->Cell(145,10,"GRAND TOTAL (Incl. Taxes)",1,0,"R",true); 
+    $pdf->Cell(45,10,"Rs. ".number_format($total, 2),1,1,"R",true);
+
+    $pdf->Ln(15);
+    $pdf->SetFont("Arial","I",9); $pdf->SetTextColor(100,116,139);
+    $pdf->Cell(190,5,"* This is a computer generated receipt and does not require a physical signature.",0,1,"C");
+    $pdf->Cell(190,5,"* Thank you for choosing Park Heaven for your parking needs.",0,1,"C");
+
     return $pdf->Output("S");
 }
 
@@ -62,6 +114,7 @@ if (isset($_POST["extend_payment_success"])) {
                 
                 $start_fmt = date("d-m-Y h:i A", strtotime($b["booking_time"]));
                 $end_fmt = date("d-m-Y h:i A", strtotime($new_end_time));
+                $loc_full = $b['location'].", ".$b['area'].", ".$b['city'];
                 
                 $mail->Body = "
                 <div style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>
@@ -69,17 +122,17 @@ if (isset($_POST["extend_payment_success"])) {
                     <p>Dear <strong>{$b['user_name']}</strong>,</p>
                     <p>Thank you for choosing Park Heaven. Your parking reservation has been <span style='color: #059669; font-weight: bold;'>successfully extended</span>.</p>
                     
-                    <p><strong>Location:</strong> <span style='color: #2563eb;'>{$b['location']}</span></p>
+                    <p><strong>Location:</strong> <span style='color: #2563eb;'>{$loc_full}</span></p>
                     <p><strong>Slot Number:</strong> <span style='color: #f59e0b; font-weight: bold;'>#{$b['seat_number']}</span></p>
                     <p><strong>Vehicle Number:</strong> <span style='color: #7c3aed; font-weight: bold;'>{$b['vehicle_no']}</span></p>
                     
                     <h3 style='border-bottom: 1px solid #eee; padding-bottom: 5px;'>Parking Session Schedule</h3>
                     <p><strong>Starts at:</strong> <span style='color: #dc2626;'>{$start_fmt}</span></p>
                     <p><strong>Ends at:</strong> <span style='color: #dc2626; font-weight: bold;'>{$end_fmt}</span></p>
-                    <p><strong>Extended By:</strong> {$hrs} Hour(s)</p>
+                    <p><strong>Extended By:</strong> <span style='font-weight: bold;'>{$hrs} Hour(s)</span></p>
                     
                     <h3 style='border-bottom: 1px solid #eee; padding-bottom: 5px;'>Payment Summary</h3>
-                    <p><strong>Amount Paid for Extension:</strong> <span style='color: #059669; font-weight: bold;'>&#8377;".number_format($total_amt, 2)."</span></p>
+                    <p><strong>Amount Paid for Extension:</strong> <span style='color: #059669; font-weight: bold;'>₹".number_format($total_amt, 2)."</span></p>
                     <p><strong>Transaction ID:</strong> <code>{$_POST['razorpay_payment_id']}</code></p>
                     
                     <p style='background: #fffbeb; padding: 10px; border-left: 4px solid #f59e0b; font-style: italic;'>
@@ -145,7 +198,7 @@ if (isset($_POST["payment_success"])) {
                 <p><strong>Total Duration:</strong> {$dur} Hour(s)</p>
                 
                 <h3 style='border-bottom: 1px solid #eee; padding-bottom: 5px;'>Payment Summary</h3>
-                <p><strong>Amount Paid:</strong> <span style='color: #059669; font-weight: bold;'>&#8377;".number_format($amt, 2)."</span></p>
+                <p><strong>Amount Paid:</strong> <span style='color: #059669; font-weight: bold;'>₹".number_format($amt, 2)."</span></p>
                 <p><strong>Transaction ID:</strong> <code>{$_POST['razorpay_payment_id']}</code></p>
                 
                 <p style='background: #fffbeb; padding: 10px; border-left: 4px solid #f59e0b; font-style: italic;'>
@@ -206,7 +259,7 @@ if (isset($_POST["action"]) && $_POST["action"] === "fetch_booked_seats") {
         .main-content { margin-left: 220px; padding: 2rem; }
         @media (max-width: 992px) { .main-content { margin-left: 0; } }
         .content-card { background: white; border-radius: 0.75rem; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; }
-        .parking-container { background: #343a40; border-radius: 15px; padding: 30px; border: 8px solid #23272b; position: relative; margin-bottom: 20px; overflow-x: auto; display: flex; flex-direction: column; gap: 10px; }
+        .parking-container { background: #343a40; border-radius: 15px; padding: 20px; border: 8px solid #23272b; position: relative; margin-bottom: 20px; overflow-x: auto; display: flex; flex-direction: column; gap: 10px; }
         .row-bays { display: flex; justify-content: flex-start; gap: 15px; position: relative; z-index: 1; min-width: max-content; }
         .parking-bay { width: 90px; height: 130px; border: 2.5px solid #fff; border-radius: 10px; display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; transition: 0.3s; flex-shrink: 0; }
         .bay-top { border-bottom: 0; border-radius: 10px 10px 0 0; }
@@ -252,8 +305,10 @@ if (isset($_POST["action"]) && $_POST["action"] === "fetch_booked_seats") {
 </div>
 
 <div class="modal fade" id="bookSlotModal" tabindex="-1" role="dialog"><div class="modal-dialog modal-xl"><div class="modal-content"><div class="modal-header"><h5 class="modal-title font-weight-bold">New Reservation</h5><button class="close" data-dismiss="modal">&times;</button></div><div class="modal-body p-4">
-    <div id="seat-map" class="parking-container">
-        <div style="color: white; text-align: center; width: 100%; padding: 50px;">Select a location to generate road map...</div>
+    <div class="parking-container">
+        <div id="seat-map" class="seat-grid-horizontal" style="min-height: 250px;">
+            <div style="color: white; text-align: center; width: 100%; padding: 50px;">Select a location to generate road map...</div>
+        </div>
     </div>
 
     <form id="bookingForm"><input type="hidden" name="user_name" value="<?= $user_name ?>">
@@ -300,14 +355,14 @@ if (isset($_POST["action"]) && $_POST["action"] === "fetch_booked_seats") {
             </div>
             <div class="col-md-4">
                 <label class="small font-weight-bold">PAYMENT SUMMARY</label>
-                <div class="alert alert-info py-2 px-3 mb-0">Price: &#8377;<span id="base_price">0.00</span> + 18% GST = <strong>&#8377;<span id="total_amount">0.00</span></strong></div>
+                <div class="alert alert-info py-2 px-3 mb-0">Price: <i class="fas fa-rupee-sign"></i><span id="base_price">0.00</span> + 18% GST = <strong><i class="fas fa-rupee-sign"></i><span id="total_amount">0.00</span></strong></div>
             </div>
         </div>
         <button type="button" id="payButton" class="btn btn-primary btn-lg btn-block font-weight-bold mt-4">PAY & CONFIRM BOOKING</button>
     </form>
 </div></div></div></div>
 
-<div class="modal fade" id="extendTimeModal" tabindex="-1" role="dialog"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title font-weight-bold">Extend Time</h5><button class="close" data-dismiss="modal">&times;</button></div><div class="modal-body"><input type="hidden" id="extend_booking_id"><input type="hidden" id="extend_unit_price"><label class="small font-weight-bold">ADDITIONAL HOURS</label><select id="extend_hours" class="form-control" onchange="calculateExtendPrice()"><option value="1">1 Hour</option><option value="2">2 Hours</option></select><div id="extend_details" class="mt-3 text-muted"></div><div class="alert alert-warning mt-3">Extension Cost: &#8377;<span id="ext_base">0.00</span> + 18% GST = <strong>&#8377;<span id="extend_total_amount">0.00</span></strong></div></div><div class="modal-footer"><button type="button" id="payExtendButton" class="btn btn-primary btn-block">Pay & Extend</button></div></div></div></div>
+<div class="modal fade" id="extendTimeModal" tabindex="-1" role="dialog"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title font-weight-bold">Extend Time</h5><button class="close" data-dismiss="modal">&times;</button></div><div class="modal-body"><input type="hidden" id="extend_booking_id"><input type="hidden" id="extend_unit_price"><label class="small font-weight-bold">ADDITIONAL HOURS</label><select id="extend_hours" class="form-control" onchange="calculateExtendPrice()"><option value="1">1 Hour</option><option value="2">2 Hours</option></select><div id="extend_details" class="mt-3 text-muted"></div><div class="alert alert-warning mt-3">Extension Cost: <i class="fas fa-rupee-sign"></i><span id="ext_base">0.00</span> + 18% GST = <strong><i class="fas fa-rupee-sign"></i><span id="extend_total_amount">0.00</span></strong></div></div><div class="modal-footer"><button type="button" id="payExtendButton" class="btn btn-primary btn-block">Pay & Extend</button></div></div></div></div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script><script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
 <script>

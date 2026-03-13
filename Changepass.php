@@ -178,17 +178,38 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <form action='Changepass.php' method='post' class="mt-5" id="change-password-form">
       <div class='form-group'>
         <label for='current_pwd'>Current Password:</label>
-        <input type='password' class='form-control' id='current_pwd' name='current_pwd'>
+        <div class="input-group">
+          <input type='password' class='form-control' id='current_pwd' name='current_pwd' style="border-top-right-radius: 0; border-bottom-right-radius: 0;">
+          <div class="input-group-append">
+            <span class="input-group-text bg-white" style="cursor: pointer; border-radius: 0 30px 30px 0; padding: 0 20px;" onclick="togglePassword('current_pwd', this)">
+              <i class="fas fa-eye"></i>
+            </span>
+          </div>
+        </div>
         <span class="error-message" id="current-pwd-error"></span>
       </div>
       <div class='form-group'>
         <label for='new_pwd'>New Password:</label>
-        <input type='password' class='form-control' id='new_pwd' name='new_pwd'>
+        <div class="input-group">
+          <input type='password' class='form-control' id='new_pwd' name='new_pwd' style="border-top-right-radius: 0; border-bottom-right-radius: 0;">
+          <div class="input-group-append">
+            <span class="input-group-text bg-white" style="cursor: pointer; border-radius: 0 30px 30px 0; padding: 0 20px;" onclick="togglePassword('new_pwd', this)">
+              <i class="fas fa-eye"></i>
+            </span>
+          </div>
+        </div>
         <span class="error-message" id="new-pwd-error"></span>
       </div>
       <div class='form-group mb-4'>
         <label for='confirm_pwd'>Confirm New Password:</label>
-        <input type='password' class='form-control' id='confirm_pwd' name='confirm_pwd'>
+        <div class="input-group">
+          <input type='password' class='form-control' id='confirm_pwd' name='confirm_pwd' style="border-top-right-radius: 0; border-bottom-right-radius: 0;">
+          <div class="input-group-append">
+            <span class="input-group-text bg-white" style="cursor: pointer; border-radius: 0 30px 30px 0; padding: 0 20px;" onclick="togglePassword('confirm_pwd', this)">
+              <i class="fas fa-eye"></i>
+            </span>
+          </div>
+        </div>
         <span class="error-message" id="confirm-pwd-error"></span>
       </div>
       <div>
@@ -199,6 +220,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
   </div>
 
   <script>
+    function togglePassword(inputId, element) {
+      const input = document.getElementById(inputId);
+      const icon = element.querySelector('i');
+      if (input.type === "password") {
+        input.type = "text";
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+      } else {
+        input.type = "password";
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+      }
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
       var flashMessage = document.getElementById('flashMessage');
       if (flashMessage) {

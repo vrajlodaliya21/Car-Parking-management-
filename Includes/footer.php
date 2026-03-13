@@ -34,14 +34,13 @@
 
         <div style="text-align:left">
           <p style="font-size:20px; color:white; font-weight:900;">Address :</p>
-          <p>2562, 3rd Floor, 14th Cross, 24th Main, Sector 1, HSR Layout, Bengaluru 560102, India</p>
+          <p>102, Park Heaven Building, Near Adajan Circle, Surat, Gujarat 395009, India</p>
         </div>
 
         <div style="text-align:left">
           <p style="font-size:20px; color:white; font-weight:900;">Sales :</p>
-          <p>+91 73530 26266</p>
-          <p>+91 86107 30231</p>
-          <p>contact@versionx.in</p>
+          <p>+91 82009 54589</p>
+          <p>parkheaven300@gmail.com</p>
         </div>
 
       </div>

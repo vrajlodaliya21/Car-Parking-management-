@@ -202,8 +202,15 @@ if (isset($_POST['submit'])) {
                 </div>
 
                 <div class="form-group <?php echo $pwdError ? 'has-error' : ''; ?>">
-                    <input type='password' class='form-control' name='pwd' id='pwd' placeholder='Password'
-                        style='font-size: 19px;'>
+                    <div class="input-group">
+                        <input type='password' class='form-control' name='pwd' id='pwd' placeholder='Password'
+                            style='font-size: 19px; border-right: none;'>
+                        <div class="input-group-append">
+                            <span class="input-group-text bg-white border-left-0" style="cursor: pointer;" onclick="togglePassword('pwd', this)">
+                                <i class="fas fa-eye"></i>
+                            </span>
+                        </div>
+                    </div>
                     <div class="error-message <?php echo $pwdError ? 'show' : ''; ?>" id='pwd-error'>
                         <?php if ($pwdError): ?>
                             <i class='fas fa-info-circle'></i>
@@ -288,6 +295,19 @@ if (isset($_POST['submit'])) {
     </div>
 
     <script>
+        function togglePassword(inputId, element) {
+            const input = document.getElementById(inputId);
+            const icon = element.querySelector('i');
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = "password";
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
 
         function displayError(inputId, message) {
             const formGroup = document.getElementById(inputId).parentElement;

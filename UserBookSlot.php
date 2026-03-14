@@ -56,22 +56,26 @@ function generateReceiptContent($bid, $conn) {
 
     // Amount Calculations
     $total = $b["amount_paid"]; 
-    $base = $total / 1.18; 
-    $gst_each = ($total - $base) / 2;
+    $base = $total / (1.18 * 1.02); 
+    $gst_each = ($base * 0.18) / 2;
+    $platform_charge = ($base * 1.18) * 0.02;
 
     $pdf->SetFont("Arial","",10);
     $pdf->Cell(100,10,"Parking Slot Reservation Fee",1,0,"L");
     $pdf->Cell(45,10,date("d-m-Y",strtotime($b["booking_time"])),1,0,"C");
     $pdf->Cell(45,10,number_format($base, 2),1,1,"R");
 
-    // Tax Rows
+    // Tax & Fees Rows
     $pdf->Cell(145,8,"CGST (9%)",1,0,"R"); $pdf->Cell(45,8,number_format($gst_each, 2),1,1,"R");
     $pdf->Cell(145,8,"SGST (9%)",1,0,"R"); $pdf->Cell(45,8,number_format($gst_each, 2),1,1,"R");
+    $pdf->Cell(145,8,"Platform Processing Fee (2%)",1,0,"R"); $pdf->Cell(45,8,number_format($platform_charge, 2),1,1,"R");
 
     // Total Row
     $pdf->SetFont("Arial","B",11); $pdf->SetFillColor(239,246,255);
-    $pdf->Cell(145,10,"GRAND TOTAL (Incl. Taxes)",1,0,"R",true); 
+    $pdf->Cell(145,10,"GRAND TOTAL (Incl. All Taxes & Fees)",1,0,"R",true); 
+    $pdf->SetTextColor(37,99,235);
     $pdf->Cell(45,10,"Rs. ".number_format($total, 2),1,1,"R",true);
+    $pdf->SetTextColor(30,41,59);
 
     $pdf->Ln(15);
     $pdf->SetFont("Arial","I",9); $pdf->SetTextColor(100,116,139);
@@ -255,17 +259,18 @@ if (isset($_POST["action"]) && $_POST["action"] === "fetch_booked_seats") {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <style>
-        body { padding-top: 85px; font-family: "Inter", sans-serif; background: #f8fafc; }
+        body { padding-top: 85px; font-family: "Inter", sans-serif; background: url('Images/new1.jpg') no-repeat center center fixed; background-size: cover; position: relative; }
+        body::before { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(248, 250, 252, 0.9); z-index: -1; }
         .main-content { margin-left: 220px; padding: 2rem; }
         @media (max-width: 992px) { .main-content { margin-left: 0; } }
         .content-card { background: white; border-radius: 0.75rem; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; }
-        .parking-container { background: #343a40; border-radius: 15px; padding: 20px; border: 8px solid #23272b; position: relative; margin-bottom: 20px; overflow-x: auto; display: flex; flex-direction: column; gap: 10px; }
-        .row-bays { display: flex; justify-content: flex-start; gap: 15px; position: relative; z-index: 1; min-width: max-content; }
-        .parking-bay { width: 90px; height: 130px; border: 2.5px solid #fff; border-radius: 10px; display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; transition: 0.3s; flex-shrink: 0; }
-        .bay-top { border-bottom: 0; border-radius: 10px 10px 0 0; }
-        .bay-bottom { border-top: 0; border-radius: 0 0 10px 10px; }
-        .road-line-horizontal { height: 5px; border-top: 5px dashed #ffc107; margin: 15px 0; opacity: 0.7; width: 100%; min-width: 1100px; }
-        .car-icon { font-size: 35px; transition: 0.3s; color: #fff; opacity: 0.15; }
+        .parking-container { background: #343a40; border-radius: 15px; padding: 40px; border: 10px solid #23272b; position: relative; margin-bottom: 20px; overflow-x: auto; display: flex; flex-direction: column; gap: 50px; align-items: center; }
+        .row-bays { display: flex; justify-content: center; gap: 15px; position: relative; z-index: 1; width: 100%; flex-wrap: wrap; }
+        .parking-bay { width: 100px; height: 150px; border: 3px solid #fff; border-radius: 12px; display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; transition: 0.3s; flex-shrink: 0; margin-bottom: 10px; }
+        .bay-top { border-bottom: 0; border-radius: 12px 12px 0 0; }
+        .bay-bottom { border-top: 0; border-radius: 0 0 12px 12px; }
+        .road-line-horizontal { height: 10px; border-top: 8px dashed #ffc107; margin: 25px 0; opacity: 0.8; width: 95%; }
+        .car-icon { font-size: 50px; transition: 0.3s; color: #fff; opacity: 0.15; }
         .parking-bay:hover { background: rgba(255,255,255,0.1); }
         .parking-bay.booked { background: rgba(239, 68, 68, 0.2); cursor: not-allowed; }
         .parking-bay.booked .car-icon { color: #ef4444; opacity: 1; }
@@ -279,18 +284,18 @@ if (isset($_POST["action"]) && $_POST["action"] === "fetch_booked_seats") {
 <div class="sidebar"><?php include "./Includes/Unavbar.php"; ?></div>
 <div class="main-content">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="font-weight-bold">Parking Reservations</h2>
+        <h2 class="font-weight-bold">Park Heaven - Secure Car Parking Slot Reservations</h2>
         <button class="btn btn-primary px-4 py-2" data-toggle="modal" data-target="#bookSlotModal">+ Book New Slot</button>
     </div>
     <div class="content-card">
         <table class="table table-hover mb-0">
-            <thead class="bg-light"><tr><th class="px-4">Location</th><th>Slot</th><th>Vehicle</th><th>Time</th><th class="text-center">Action</th></tr></thead>
+            <thead class="bg-light"><tr><th class="px-4">Location Details</th><th>Slot #</th><th>Vehicle Info</th><th>Schedule Time</th><th class="text-center">Action</th></tr></thead>
             <tbody>
                 <?php foreach($slots as $s): ?>
                 <tr>
                     <td class="px-4 align-middle"><strong><?= htmlspecialchars($s["location"]) ?></strong><br><small class="text-muted"><?= $s["city"] ?></small></td>
-                    <td class="align-middle"><span class="badge badge-light border">#<?= $s["seat_number"] ?></span></td>
-                    <td class="align-middle"><code><?= $s["vehicle_no"] ?></code></td>
+                    <td class="align-middle"><span class="badge badge-success border">#<?= $s["seat_number"] ?></span></td>
+                    <td class="align-middle"><code class="text-success font-weight-bold"><?= $s["vehicle_no"] ?></code></td>
                     <td class="align-middle text-muted small"><?= date("d M, h:i A", strtotime($s["booking_time"])) ?></td>
                     <td class="align-middle text-center">
                         <button class="btn btn-sm btn-warning mr-1" onclick="prepareExtend('<?= $s['id'] ?>', '<?= $s['vehicle_no'] ?>', '<?= $s['end_time'] ?>', '<?= $s['price'] ?>')">Extend</button>
@@ -354,15 +359,83 @@ if (isset($_POST["action"]) && $_POST["action"] === "fetch_booked_seats") {
                 <input type="text" id="selected_seat" name="seat_number" class="form-control bg-white font-weight-bold text-primary" readonly>
             </div>
             <div class="col-md-4">
-                <label class="small font-weight-bold">PAYMENT SUMMARY</label>
-                <div class="alert alert-info py-2 px-3 mb-0">Price: <i class="fas fa-rupee-sign"></i><span id="base_price">0.00</span> + 18% GST = <strong><i class="fas fa-rupee-sign"></i><span id="total_amount">0.00</span></strong></div>
+                <label class="small font-weight-bold">DETAILED PAYMENT SUMMARY</label>
+                <div class="alert alert-info py-2 px-3 mb-0" style="font-size: 0.85rem;">
+                    Base: ₹<span id="base_price">0.00</span> | CGST (9%): ₹<span id="cgst_amt">0.00</span> | SGST (9%): ₹<span id="sgst_amt">0.00</span><br>
+                    Service Charge (3%): ₹<span id="platform_charge">0.00</span><br>
+                    <hr class="my-1">
+                    Total Payable: <strong class="text-primary font-weight-bold" style="font-size: 1.1rem;"><i class="fas fa-rupee-sign"></i><span id="total_amount">0.00</span></strong>
+                </div>
             </div>
         </div>
-        <button type="button" id="payButton" class="btn btn-primary btn-lg btn-block font-weight-bold mt-4">PAY & CONFIRM BOOKING</button>
+        <button type="button" id="payButton" class="btn btn-primary btn-lg btn-block font-weight-bold mt-4 shadow-sm">PAY & CONFIRM BOOKING</button>
     </form>
 </div></div></div></div>
 
-<div class="modal fade" id="extendTimeModal" tabindex="-1" role="dialog"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title font-weight-bold">Extend Time</h5><button class="close" data-dismiss="modal">&times;</button></div><div class="modal-body"><input type="hidden" id="extend_booking_id"><input type="hidden" id="extend_unit_price"><label class="small font-weight-bold">ADDITIONAL HOURS</label><select id="extend_hours" class="form-control" onchange="calculateExtendPrice()"><option value="1">1 Hour</option><option value="2">2 Hours</option></select><div id="extend_details" class="mt-3 text-muted"></div><div class="alert alert-warning mt-3">Extension Cost: <i class="fas fa-rupee-sign"></i><span id="ext_base">0.00</span> + 18% GST = <strong><i class="fas fa-rupee-sign"></i><span id="extend_total_amount">0.00</span></strong></div></div><div class="modal-footer"><button type="button" id="payExtendButton" class="btn btn-primary btn-block">Pay & Extend</button></div></div></div></div>
+<div class="modal fade" id="bookSlotModal" tabindex="-1" role="dialog"><div class="modal-dialog modal-xl"><div class="modal-content"><div class="modal-header"><h5 class="modal-title font-weight-bold">New Reservation</h5><button class="close" data-dismiss="modal">&times;</button></div><div class="modal-body p-4">
+    <div class="parking-container">
+        <div id="seat-map" class="seat-grid-horizontal" style="min-height: 250px;">
+            <div style="color: white; text-align: center; width: 100%; padding: 50px;">Select a location to generate road map...</div>
+        </div>
+    </div>
+
+    <form id="bookingForm"><input type="hidden" name="user_name" value="<?= $user_name ?>">
+        <div class="row">
+            <div class="col-md-3">
+                <label class="small font-weight-bold">CITY</label>
+                <select id="city" class="form-control" onchange="updateAreas()"><option value="">City</option><?php foreach(array_unique(array_column($available_locations, 'city')) as $c) echo "<option value='$c'>$c</option>"; ?></select>
+            </div>
+            <div class="col-md-3">
+                <label class="small font-weight-bold">AREA</label>
+                <select id="area" class="form-control" onchange="updateLocations()" disabled><option value="">Area</option></select>
+            </div>
+            <div class="col-md-3">
+                <label class="small font-weight-bold">LOCATION</label>
+                <select id="location_id" name="location_id" class="form-control" onchange="fetchSeatMap()" disabled><option value="">Location</option></select>
+            </div>
+            <div class="col-md-3">
+                <label class="small font-weight-bold text-danger">VEHICLE NO *</label>
+                <input type="text" id="vehicle_no" name="vehicle_no" class="form-control border-danger" placeholder="GJ 05 MH 1234">
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col-md-4">
+                <label class="small font-weight-bold">START TIME</label>
+                <div class="d-flex align-items-center">
+                    <input type="text" class="form-control bg-light text-dark font-weight-bold mr-1" style="flex: 2.5;" value="<?=date("d-m-Y")?>" readonly>
+                    <input type="hidden" id="start_date" value="<?=date("Y-m-d")?>">
+                    <select id="start_hour" class="form-control mr-1" style="flex: 1;"><?php for($h=1;$h<=12;$h++) echo "<option value='".sprintf("%02d",$h)."'>".sprintf("%02d",$h)."</option>"; ?></select>
+                    <select id="start_minute" class="form-control mr-1" style="flex: 1;"><?php for($m=0;$m<=55;$m+=5) echo "<option value='".sprintf("%02d",$m)."'>".sprintf("%02d",$m)."</option>"; ?></select>
+                    <select id="start_period" class="form-control" style="flex: 1;"><option>AM</option><option>PM</option></select>
+                </div>
+                <input type="hidden" id="start_time" name="start_time">
+            </div>
+            <div class="col-md-2">
+                <label class="small font-weight-bold">DURATION</label>
+                <select id="duration" name="duration" class="form-control" onchange="fetchSeatMap()">
+                    <option value="1">1 Hour</option><option value="2" selected>2 Hours</option><option value="3">3 Hours</option><option value="4">4 Hours</option><option value="6">6 Hours</option><option value="8">8 Hours</option><option value="12">12 Hours</option><option value="24">24 Hours</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="small font-weight-bold">SLOT #</label>
+                <input type="text" id="selected_seat" name="seat_number" class="form-control bg-white font-weight-bold text-primary" readonly>
+            </div>
+            <div class="col-md-4">
+                <label class="small font-weight-bold">DETAILED PAYMENT SUMMARY</label>
+                <div class="alert alert-info py-2 px-3 mb-0" style="font-size: 0.85rem;">
+                    Base: ₹<span id="base_price">0.00</span> | CGST (9%): ₹<span id="cgst_amt">0.00</span> | SGST (9%): ₹<span id="sgst_amt">0.00</span><br>
+                    Service Charge (2%): ₹<span id="platform_charge">0.00</span><br>
+                    <hr class="my-1">
+                    Total Payable: <strong class="text-primary font-weight-bold" style="font-size: 1.1rem;"><i class="fas fa-rupee-sign"></i><span id="total_amount">0.00</span></strong>
+                </div>
+            </div>
+        </div>
+        <button type="button" id="payButton" class="btn btn-primary btn-lg btn-block font-weight-bold mt-4 shadow-sm">PAY & CONFIRM BOOKING</button>
+    </form>
+</div></div></div></div>
+
+<div class="modal fade" id="extendTimeModal" tabindex="-1" role="dialog"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title font-weight-bold">Extend Parking Session</h5><button class="close" data-dismiss="modal">&times;</button></div><div class="modal-body"><input type="hidden" id="extend_booking_id"><input type="hidden" id="extend_unit_price"><label class="small font-weight-bold">ADDITIONAL HOURS</label><select id="extend_hours" class="form-control" onchange="calculateExtendPrice()"><option value="1">1 Hour</option><option value="2">2 Hours</option></select><div id="extend_details" class="mt-3 text-muted"></div><div class="alert alert-warning mt-3">Extension Cost (Incl. 18% GST + 2% Service): <strong><i class="fas fa-rupee-sign"></i><span id="extend_total_amount">0.00</span></strong></div></div><div class="modal-footer"><button type="button" id="payExtendButton" class="btn btn-primary btn-block shadow">Pay & Extend Now</button></div></div></div></div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script><script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
 <script>
@@ -377,8 +450,30 @@ if (isset($_POST["action"]) && $_POST["action"] === "fetch_booked_seats") {
         $('#location_id').val('').prop('disabled', !area).html('<option value="">Location</option>'); 
         if(area) { locations.filter(l => l.city === city && l.area === area).forEach(l => $('#location_id').append('<option value="' + l.id + '" data-price="' + l.price + '">' + l.location + '</option>')); $('#location_id').prop('disabled', false); } 
     }
-    function calculatePrice() { const p = parseFloat($('#location_id option:selected').data('price') || 0), d = parseInt($('#duration').val() || 0); const base = p * d; const total = base * 1.18; $('#base_price').text(base.toFixed(2)); $('#total_amount').text(total.toFixed(2)); }
-    function calculateExtendPrice() { const p = parseFloat($('#extend_unit_price').val() || 0), h = parseInt($('#extend_hours').val() || 0); const base = p * h; const total = base * 1.18; $('#ext_base').text(base.toFixed(2)); $('#extend_total_amount').text(total.toFixed(2)); }
+    function calculatePrice() { 
+        const p = parseFloat($('#location_id option:selected').data('price') || 0), d = parseInt($('#duration').val() || 0); 
+        const subtotal = p * d; 
+        const gst_each = (subtotal * 0.18) / 2;
+        const totalBeforePlatform = subtotal + (gst_each * 2);
+        const platformCharge = totalBeforePlatform * 0.02;
+        const grandTotal = totalBeforePlatform + platformCharge;
+        
+        $('#base_price').text(subtotal.toFixed(2)); 
+        $('#cgst_amt').text(gst_each.toFixed(2));
+        $('#sgst_amt').text(gst_each.toFixed(2));
+        $('#platform_charge').text(platformCharge.toFixed(2));
+        $('#total_amount').text(grandTotal.toFixed(2)); 
+    }
+    function calculateExtendPrice() { 
+        const p = parseFloat($('#extend_unit_price').val() || 0), h = parseInt($('#extend_hours').val() || 0); 
+        const subtotal = p * h; 
+        const gst_each = (subtotal * 0.18) / 2;
+        const totalBeforePlatform = subtotal + (gst_each * 2);
+        const platformCharge = totalBeforePlatform * 0.02;
+        const grandTotal = totalBeforePlatform + platformCharge;
+        
+        $('#extend_total_amount').text(grandTotal.toFixed(2)); 
+    }
     function updateStartTime() { 
         const ds = $('#start_date').val(); 
         let h = parseInt($('#start_hour').val()); if($('#start_period').val()==='PM' && h<12) h+=12; if($('#start_period').val()==='AM' && h===12) h=0; 
@@ -389,8 +484,8 @@ if (isset($_POST["action"]) && $_POST["action"] === "fetch_booked_seats") {
         $.post('UserBookSlot.php', { action: 'fetch_booked_seats', location_id: id, start_time: updateStartTime(), duration: $('#duration').val() }, function(res) { 
             const m = $('#seat-map').empty(); 
             const total = res.totalSlots;
-            const numRows = Math.ceil(total / 10);
             const perRow = 10;
+            const numRows = Math.ceil(total / perRow);
             
             let currentSlot = 1;
             for(let r=0; r<numRows; r++) {
@@ -405,10 +500,8 @@ if (isset($_POST["action"]) && $_POST["action"] === "fetch_booked_seats") {
                     currentSlot++;
                 }
                 m.append(rowDiv);
-                if (isTop && r < numRows - 1) {
+                if (r < numRows - 1) {
                     m.append('<div class="road-line-horizontal"></div>');
-                } else if (!isTop && r < numRows - 1) {
-                    m.append('<div style="height: 25px; width: 100%;"></div>');
                 }
             }
             calculatePrice(); 
@@ -423,7 +516,25 @@ if (isset($_POST["action"]) && $_POST["action"] === "fetch_booked_seats") {
             updateStartTime(); 
         });
         $('#start_hour, #start_minute, #start_period').on('change', function() { updateStartTime(); fetchSeatMap(); });
-        $('#vehicle_no').on('input', function() { let v = $(this).val().toUpperCase().replace(/[^A-Z0-9]/g, ''), p = []; if (v.length > 0) p.push(v.slice(0, 2)); if (v.length > 2) p.push(v.slice(2, 4)); if (v.length > 4) { let r = v.slice(4), m = r.match(/^([A-Z]{1,2})([0-9]{0,4})/); if (m) { p.push(m[1]); if (m[2]) p.push(m[2]); } else p.push(r); } $(this).val(p.join(' ').substring(0, 13)); });
+        $('#vehicle_no').on('input', function() { 
+            let v = $(this).val().toUpperCase().replace(/[^A-Z0-9]/g, ''), p = []; 
+            if (v.length > 0) p.push(v.slice(0, 2)); 
+            if (v.length > 2) p.push(v.slice(2, 4)); 
+            if (v.length > 4) { 
+                let r = v.slice(4), m = r.match(/^([A-Z]{1,2})([0-9]{0,4})/); 
+                if (m) { p.push(m[1]); if (m[2]) p.push(m[2]); } else p.push(r); 
+            } 
+            const formatted = p.join(' ').substring(0, 13);
+            $(this).val(formatted); 
+
+            // Validation: State(2) Dist(2) Series(1-2) Num(1-4)
+            const regex = /^[A-Z]{2}\s[0-9]{2}\s[A-Z]{1,2}\s[0-9]{1,4}$/;
+            if (regex.test(formatted)) {
+                $(this).removeClass('border-danger').addClass('border-success').css('border-width', '2px');
+            } else {
+                $(this).removeClass('border-success').addClass('border-danger').css('border-width', '1px');
+            }
+        });
         $('#payButton').click(function() { 
             const vn = $('#vehicle_no').val().trim(); if(!vn) return alert('Error: Please enter your vehicle number.');
             const stStr = updateStartTime().replace(/-/g, '/'); const sel = new Date(stStr); const now = new Date(); if(sel < new Date(now.getTime() - 300000)) return alert('Error: You cannot book for a past time!');

@@ -14,6 +14,48 @@ if ($checkColumn->num_rows == 0) {
   $conn->query("UPDATE vendors SET status = 'pending' WHERE status IS NULL OR status = ''");
 }
 
+use PHPMailer\PHPMailer\{PHPMailer, Exception};
+require "PHPMailer/src/Exception.php"; 
+require "PHPMailer/src/PHPMailer.php"; 
+require "PHPMailer/src/SMTP.php";
+
+function sendApprovalEmail($email, $name, $password = null) {
+    $mail = new PHPMailer(true);
+    try {
+        $mail->isSMTP();
+        $mail->Host = "smtp.gmail.com";
+        $mail->SMTPAuth = true;
+        $mail->Username = "vrajlodaliya62@gmail.com"; 
+        $mail->Password = "vpxx gvpw jqwm luea"; 
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port = 587;
+
+        $mail->setFrom("vrajlodaliya62@gmail.com", "Park Heaven Admin");
+        $mail->addAddress($email, $name);
+        $mail->isHTML(true);
+        $mail->Subject = "Your Vendor Account Status - Park Heaven";
+        
+        $msg = "<h2>Congratulations $name!</h2>";
+        $msg .= "<p>Your vendor request has been approved. You can now log in to your dashboard and start adding parking slots.</p>";
+        $msg .= "<p><strong>Login Credentials:</strong><br>";
+        $msg .= "Email: $email<br>";
+        if ($password) {
+            $msg .= "Password: $password<br>";
+        } else {
+            $msg .= "Password: (The one you used during registration)<br>";
+        }
+        $msg .= "</p>";
+        $msg .= "<p><a href='http://localhost/car/Vendors/Login.php'>Click here to Login</a></p>";
+        $msg .= "<br><p>Best Regards,<br>Park Heaven Team</p>";
+
+        $mail->Body = $msg;
+        $mail->send();
+        return true;
+    } catch (Exception $e) {
+        return false;
+    }
+}
+
 // Handle AJAX requests for Approve/Deny/Delete
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['action']) || isset($_POST['vendor_id_delete']) || isset($_POST['name']))) {
   header('Content-Type: application/json');
@@ -23,11 +65,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['action']) || isset($
     $action = $_POST['action'];
     $status = ($action === 'approve') ? 'approved' : 'denied';
     
-    // Extra validation: make sure id exists
-    $checkVendor = $conn->prepare("SELECT id FROM vendors WHERE id = ?");
-    $checkVendor->bind_param("i", $v_id);
-    $checkVendor->execute();
-    if ($checkVendor->get_result()->num_rows === 0) {
+    // Get vendor details for email
+    $getVendor = $conn->prepare("SELECT name, email FROM vendors WHERE id = ?");
+    $getVendor->bind_param("i", $v_id);
+    $getVendor->execute();
+    $vendorData = $getVendor->get_result()->fetch_assoc();
+
+    if (!$vendorData) {
       echo json_encode(['success' => false, 'message' => "Vendor ID $v_id not found"]);
       exit;
     }
@@ -36,11 +80,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['action']) || isset($
     $stmt->bind_param("si", $status, $v_id);
     
     if ($stmt->execute()) {
-      if ($stmt->affected_rows > 0) {
-        echo json_encode(['success' => true, 'message' => "Vendor account $status successfully"]);
-      } else {
-        echo json_encode(['success' => true, 'message' => "Vendor account was already $status"]);
+      if ($status === 'approved') {
+          sendApprovalEmail($vendorData['email'], $vendorData['name']);
       }
+      echo json_encode(['success' => true, 'message' => "Vendor account $status successfully and email sent"]);
     } else {
       echo json_encode(['success' => false, 'message' => "SQL Error: " . $stmt->error]);
     }
@@ -63,7 +106,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['action']) || isset($
   if (isset($_POST['name']) && isset($_POST['email'])) {
     $name = $_POST['name'];
     $email = $_POST['email'];
-    $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+    $plain_password = $_POST['password'];
+    $password = password_hash($plain_password, PASSWORD_DEFAULT);
     $phone = $_POST['phone'];
     $city = $_POST['city'];
     $area = $_POST['area'];
@@ -73,7 +117,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['action']) || isset($
     $stmt->bind_param("sssssss", $name, $email, $password, $phone, $city, $area, $location);
     
     if ($stmt->execute()) {
-      echo json_encode(['success' => true, 'message' => "Vendor added successfully"]);
+      sendApprovalEmail($email, $name, $plain_password);
+      echo json_encode(['success' => true, 'message' => "Vendor added successfully and credentials emailed"]);
     } else {
       echo json_encode(['success' => false, 'message' => "Error adding vendor: " . $conn->error]);
     }

@@ -213,8 +213,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <span class="error-message" id="confirm-pwd-error"></span>
       </div>
       <div>
-        <button type='submit' class='btn btn-custom'>Change Password</button>
-        <button type='reset' class='btn btn-danger btn-custom-cancel'>Cancel</button>
+        <button type='submit' class='btn btn-primary btn-custom'>Change Password</button>
+        <button type='button' onclick="window.location.href='UDashboard.php'" class='btn btn-danger btn-custom-cancel'>Cancel</button>
       </div>
     </form>
   </div>

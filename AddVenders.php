@@ -25,34 +25,51 @@ function sendApprovalEmail($email, $name, $password = null) {
         $mail->isSMTP();
         $mail->Host = "smtp.gmail.com";
         $mail->SMTPAuth = true;
-        $mail->Username = "vrajlodaliya62@gmail.com"; 
-        $mail->Password = "vpxx gvpw jqwm luea"; 
-        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Username = "parkheaven777@gmail.com"; 
+        $mail->Password = "ytxwhtesrejqqkcd"; 
+        $mail->SMTPSecure = "tls";
         $mail->Port = 587;
 
-        $mail->setFrom("vrajlodaliya62@gmail.com", "Park Heaven Admin");
+        $mail->setFrom("parkheaven777@gmail.com", "Park Heaven Admin");
         $mail->addAddress($email, $name);
         $mail->isHTML(true);
-        $mail->Subject = "Your Vendor Account Status - Park Heaven";
+        $mail->Subject = "Welcome to Park Heaven - Vendor Account Approved";
         
-        $msg = "<h2>Congratulations $name!</h2>";
-        $msg .= "<p>Your vendor request has been approved. You can now log in to your dashboard and start adding parking slots.</p>";
-        $msg .= "<p><strong>Login Credentials:</strong><br>";
-        $msg .= "Email: $email<br>";
-        if ($password) {
-            $msg .= "Password: $password<br>";
-        } else {
-            $msg .= "Password: (The one you used during registration)<br>";
-        }
-        $msg .= "</p>";
-        $msg .= "<p><a href='http://localhost/car/Vendors/Login.php'>Click here to Login</a></p>";
-        $msg .= "<br><p>Best Regards,<br>Park Heaven Team</p>";
+        $msg = "
+        <div style='font-family: \"Segoe UI\", Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #334155; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);'>
+            <div style='background-color: #2563eb; padding: 30px; text-align: center;'>
+                <h1 style='color: #ffffff; margin: 0; font-size: 24px; letter-spacing: 1px;'>Park Heaven</h1>
+                <p style='color: #bfdbfe; margin: 10px 0 0 0; font-size: 14px;'>Vendor Partnership Confirmed</p>
+            </div>
+            
+            <div style='padding: 40px; background-color: #ffffff;'>
+                <h2 style='color: #1e293b; margin-top: 0;'>Congratulations, $name!</h2>
+                <p>We are pleased to inform you that your vendor application has been <span style='color: #059669; font-weight: bold; background: #dcfce7; padding: 2px 6px; border-radius: 4px;'>Successfully Approved</span>.</p>
+                
+                <p>You can now access your vendor dashboard to manage your locations, view real-time bookings, and add new parking slots.</p>
+                
+                <div style='background-color: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 20px; margin: 25px 0;'>
+                    <h3 style='margin-top: 0; font-size: 16px; color: #475569;'>Your Access Credentials</h3>
+                    <p style='margin: 8px 0;'><strong>Login Email:</strong> <span style='color: #2563eb;'>$email</span></p>
+                    <p style='margin: 8px 0;'><strong>Password:</strong> " . ($password ? "<span style='color: #7c3aed; font-weight: bold;'>$password</span>" : "<span style='font-style: italic; color: #64748b;'>The password you chose during registration</span>") . "</p>
+                </div>
+
+                <div style='text-align: center; margin-top: 35px;'>
+                    <a href='http://localhost/car/Vendors/Login.php' style='background-color: #2563eb; color: #ffffff; padding: 14px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block; transition: background-color 0.3s;'>Access Vendor Dashboard</a>
+                </div>
+            </div>
+            
+            <div style='background-color: #f1f5f9; padding: 20px; text-align: center; font-size: 12px; color: #94a3b8;'>
+                <p style='margin: 0;'>This is an automated message from Park Heaven System.</p>
+                <p style='margin: 5px 0 0 0;'>&copy; " . date("Y") . " Park Heaven Management. All rights reserved.</p>
+            </div>
+        </div>";
 
         $mail->Body = $msg;
         $mail->send();
-        return true;
+        return ['success' => true];
     } catch (Exception $e) {
-        return false;
+        return ['success' => false, 'error' => $mail->ErrorInfo];
     }
 }
 
@@ -80,10 +97,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['action']) || isset($
     $stmt->bind_param("si", $status, $v_id);
     
     if ($stmt->execute()) {
+      $mailResult = ['success' => true];
       if ($status === 'approved') {
-          sendApprovalEmail($vendorData['email'], $vendorData['name']);
+          $mailResult = sendApprovalEmail($vendorData['email'], $vendorData['name']);
       }
-      echo json_encode(['success' => true, 'message' => "Vendor account $status successfully and email sent"]);
+      
+      if (!$mailResult['success']) {
+          echo json_encode(['success' => true, 'message' => "Vendor account $status, but email failed: " . $mailResult['error']]);
+      } else {
+          echo json_encode(['success' => true, 'message' => "Vendor account $status successfully and email sent"]);
+      }
     } else {
       echo json_encode(['success' => false, 'message' => "SQL Error: " . $stmt->error]);
     }
@@ -117,8 +140,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['action']) || isset($
     $stmt->bind_param("sssssss", $name, $email, $password, $phone, $city, $area, $location);
     
     if ($stmt->execute()) {
-      sendApprovalEmail($email, $name, $plain_password);
-      echo json_encode(['success' => true, 'message' => "Vendor added successfully and credentials emailed"]);
+      $mailResult = sendApprovalEmail($email, $name, $plain_password);
+      if (!$mailResult['success']) {
+          echo json_encode(['success' => true, 'message' => "Vendor added, but email failed: " . $mailResult['error']]);
+      } else {
+          echo json_encode(['success' => true, 'message' => "Vendor added successfully and credentials emailed"]);
+      }
     } else {
       echo json_encode(['success' => false, 'message' => "Error adding vendor: " . $conn->error]);
     }
@@ -200,7 +227,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['action']) || isset($
                       <button class="btn btn-sm btn-info" title="View Details" onclick='viewDetails(<?= json_encode($row) ?>)'><i class="fas fa-eye"></i></button>
                       <?php if($status === 'pending'): ?>
                         <button class="btn btn-sm btn-success" title="Approve" onclick="updateStatus(<?= $row['id'] ?>, 'approve')"><i class="fas fa-check"></i></button>
-                        <button class="btn btn-sm btn-warning" title="Deny" onclick="updateStatus(<?= $row['id'] ?>, 'deny')"><i class="fas fa-times"></i></button>
                       <?php endif; ?>
                       <button class="btn btn-sm btn-danger" title="Delete" onclick="deleteVendor(<?= $row['id'] ?>)"><i class="fas fa-trash"></i></button>
                     </div>

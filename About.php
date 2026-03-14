@@ -110,7 +110,7 @@ if (!isset($_SESSION['user'])) {
                     </p>
 
                     <p class='mt-3 h5'>
-                        - Preet Kachhadiya.
+                        - Vraj Lodaliya.
                     </p>
                 </div>
             </div>

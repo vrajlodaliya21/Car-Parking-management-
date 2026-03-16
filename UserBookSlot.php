@@ -235,7 +235,7 @@ $available_locations = [];
 $res = $conn->query("SELECT * FROM slots");
 while($row = $res->fetch_assoc()) $available_locations[] = $row;
 
-$stmt = $conn->prepare("SELECT b.*, s.price FROM bookings b JOIN slots s ON b.slot_id = s.id WHERE b.user_name = ? ORDER BY b.booking_time DESC");
+$stmt = $conn->prepare("SELECT b.*, s.price FROM bookings b JOIN slots s ON b.slot_id = s.id WHERE b.user_name = ? ORDER BY b.id DESC");
 $stmt->bind_param("s", $user_name); $stmt->execute(); $slots = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
 if (isset($_POST["action"]) && $_POST["action"] === "fetch_booked_seats") {

@@ -1,11 +1,13 @@
 <?php
-$server = 'localhost:3306';
+$server = '127.0.0.1';
 $uname = 'root';
 $password = '';
 $db = 'user';
+$port = 3307;
 
-$conn = mysqli_connect( $server, $uname, $password, $db );
-
-if ( !$conn ) {
-    die( 'Connection Error: ' . mysqli_connect_error() );
+try {
+    $conn = mysqli_connect($server, $uname, $password, $db, $port);
+} catch (mysqli_sql_exception $e) {
+    die('Database Connection Failed: ' . $e->getMessage());
 }
+

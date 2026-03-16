@@ -6,6 +6,13 @@ if (!isset($_SESSION['admin'])) {
 }
 include 'Connection.php';
 
+// Ensure created_at column exists for accurate tracking
+$checkCol = $conn->query("SHOW COLUMNS FROM bookings LIKE 'created_at'");
+if ($checkCol->num_rows == 0) {
+    $conn->query("ALTER TABLE bookings ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
+    $conn->query("UPDATE bookings SET created_at = booking_time WHERE created_at IS NULL");
+}
+
 if (isset($_SESSION['user'])) {
     header('Location: Index.php');
     exit();
@@ -23,11 +30,11 @@ $sql_total_vehicle = 'SELECT COUNT(*) AS total_vehicle FROM bookings';
 $res_total_vehicle = $conn->query($sql_total_vehicle);
 $total_vehicle = $res_total_vehicle->fetch_assoc()['total_vehicle'];
 
-$sql_today = 'SELECT * FROM bookings WHERE DATE(booking_time) = CURDATE()';
+$sql_today = 'SELECT * FROM bookings WHERE DATE(created_at) = CURDATE()';
 $result_today = $conn->query($sql_today);
 $count_today_vehentries = $result_today->num_rows;
 
-$sql_yesterday = 'SELECT * FROM bookings WHERE DATE(booking_time) = CURDATE() - INTERVAL 1 DAY';
+$sql_yesterday = 'SELECT * FROM bookings WHERE DATE(created_at) = CURDATE() - INTERVAL 1 DAY';
 $result_yesterday = $conn->query($sql_yesterday);
 $count_yesterday_vehentries = $result_yesterday->num_rows;
 
@@ -201,7 +208,7 @@ $total_earnings = $res_total_earnings->fetch_assoc()['total_earnings'];
                             </div>
                             <div class='mt-5'>
                                 <span class='fw-bold nbr'>
-                                    ₹<?php echo number_format($total_earnings / 100, 2) ?: '0'; ?>
+                                    ₹<?php echo number_format($total_earnings, 2) ?: '0.00'; ?>
                                 </span>
                             </div>
                         </div>

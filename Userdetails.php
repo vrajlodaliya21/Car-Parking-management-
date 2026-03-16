@@ -11,8 +11,8 @@ $sort_order = isset($_GET['sort']) ? $_GET['sort'] : 'asc';
 $sql = "SELECT u.U_Name, u.U_Email, u.Phone_number, COUNT(b.id) AS total_booked_slots 
         FROM users u 
         LEFT JOIN bookings b ON u.U_Name = b.user_name 
-        GROUP BY u.U_Name, u.U_Email, u.Phone_number
-        ORDER BY total_booked_slots " . ($sort_order === 'desc' ? 'DESC' : 'ASC');
+        GROUP BY u.Id, u.U_Name, u.U_Email, u.Phone_number
+        ORDER BY COUNT(b.id) " . ($sort_order === 'desc' ? 'DESC' : 'ASC');
 
 $result = mysqli_query($conn, $sql);
 ?>

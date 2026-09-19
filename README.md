@@ -87,11 +87,6 @@ Admin Username: admin2@gmail.com
 
 Admin Password: admin@222
 
-(Change credentials after first login for security.)
-
-📸 Screenshots
-
-(Add screenshots here for better presentation)
 
 🎯 Use Case
 
